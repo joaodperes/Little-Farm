@@ -569,8 +569,8 @@ function convertFarm(raw:any):FarmSave {
     traders:parseList<SpecialTrader>(legacy?raw.traderData:raw.traders),medicineCount:nonneg(raw.medicineCount),
     lastMedicineRefill:dateString(raw.lastMedicineRefill,base.lastMedicineRefill),
     discoveredHybrids:parseList<string>(raw.discoveredHybrids).filter(x=>typeof x==="string"),
-    plots:plots.length?plots:base.plots,inventory:Object.fromEntries(Object.entries(inv).filter(([,v])=>Number.isFinite(v)&&v>=0).map(([k,v])=>[k,nonneg(v)])),
-    masteries:Object.fromEntries(Object.entries(masteries).filter(([,v])=>Number.isFinite(v)&&v>=0).map(([k,v])=>[k,nonneg(v)])),animals,
+    plots:plots.length?plots:base.plots,inventory:Object.fromEntries(Object.entries(inv).filter(([,v])=>typeof v === "number" && Number.isFinite(v) && v>=0).map(([k,v])=>[k,nonneg(v)])),
+    masteries:Object.fromEntries(Object.entries(masteries).filter(([,v])=>typeof v === "number" && Number.isFinite(v) && v>=0).map(([k,v])=>[k,nonneg(v)])),animals,
   };
   return f;
 }

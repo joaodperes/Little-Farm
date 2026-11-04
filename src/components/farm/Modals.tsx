@@ -57,12 +57,12 @@ export function OfflineModal({ offlineProgress, onDismissOffline }: { offlinePro
                 Harvested {offlineProgress.autoHarvested} crop{offlineProgress.autoHarvested !== 1 ? "s" : ""}
                 {offlineProgress.autoPlanted ? ` · Planted ${offlineProgress.autoPlanted} new` : ""}
               </div>
-              {offlineProgress.autoCoinsEarned > 0 && (
+              {(offlineProgress.autoCoinsEarned ?? 0) > 0 && (
                 <div className="text-xs text-green-700">
                   💰 Auto-seller earned {offlineProgress.autoCoinsEarned} coins
                 </div>
               )}
-              {offlineProgress.autoWithered > 0 && (
+              {(offlineProgress.autoWithered ?? 0) > 0 && (
                 <div className="text-xs text-red-600">
                   {offlineProgress.autoWithered} crop{offlineProgress.autoWithered !== 1 ? "s" : ""} withered before farmers could harvest
                 </div>
