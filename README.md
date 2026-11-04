@@ -17,7 +17,7 @@ Use **Export saves** on the farmer screen or **Back up** in-game to download a J
 ## Development
 
 ```bash
-npm ci
+npm install
 npm run dev
 npm run build   # static export to out/
 ```
