@@ -125,8 +125,15 @@ function hybridMap(f:FarmSave):Record<string,HybridCropDef> {
   const res:Record<string,HybridCropDef>={};
   for (const id of f.discoveredHybrids) {
     if (!isHybridCrop(id)) continue;
-    const parts=id.slice(7).split("_");
-    try { const def=generateHybridDef(parts[0],parts.slice(1).join("_")); if (def.id===id) res[id]=def; } catch { /* malformed legacy hybrid */ }
+    // Hybrid parent IDs may contain underscores; split only at a valid crop boundary.
+    const suffix=id.slice("hybrid_".length);
+    for(const first of Object.keys(CROPS)) {
+      if(!suffix.startsWith(`${first}_`))continue;
+      const second=suffix.slice(first.length+1);
+      if(!CROPS[second])continue;
+      const def=generateHybridDef(first,second);
+      if(def.id===id){res[id]=def;break;}
+    }
   }
   return res;
 }
@@ -166,7 +173,12 @@ function harvestReward(f:FarmSave,id:string,amount:number):number {
   const previous=f.masteries[id]??0;
   // Batch approximates the per-harvest mastery multiplier as mastery increases.
   let xp=0;
-  for(let i=0;i<amount;i++) xp+=getCropXpWithMastery(id,getMasteryLevel(previous+i));
+  const crop=cropFor(f,id);
+  for(let i=0;i<amount;i++) {
+    const masteryLevel=getMasteryLevel(previous+i);
+    xp+=CROPS[id]?getCropXpWithMastery(id,masteryLevel)
+      :crop?Math.max(1,Math.floor(crop.xpReward*(1+masteryLevel*0.02))):0;
+  }
   f.masteries[id]=previous+amount;
   addInv(f,`crop_${id}`,amount); addXP(f,xp);
   questProgress(f,"harvest_any",amount);questProgress(f,"harvest_specific",amount,id);questProgress(f,"earn_xp",xp);
