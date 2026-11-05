@@ -40,7 +40,7 @@ export default function UpgradesTab({ farm, onUpgrade }: UpgradesTabProps) {
       <Card>
         <CardHeader className="pb-2 pt-3 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-            <Cog className="h-4 w-4 text-gray-600" /> Upgrades
+            <Cog className="h-4 w-4 text-gray-600 dark:text-slate-400" /> Upgrades
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-3 space-y-3">
@@ -78,10 +78,10 @@ export default function UpgradesTab({ farm, onUpgrade }: UpgradesTabProps) {
                     }
                   </Badge>
                 </div>
-                {effectMsg && <div className="text-[10px] text-emerald-600">{effectMsg}</div>}
+                {effectMsg && <div className="text-[10px] text-emerald-600 dark:text-emerald-400">{effectMsg}</div>}
                 {!maxed && (
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs font-medium ${canAfford ? "text-amber-700" : "text-red-500"}`}>
+                    <span className={`text-xs font-medium ${canAfford ? "text-amber-700 dark:text-amber-300" : "text-red-500 dark:text-rose-400"}`}>
                       Next: {cost}🪙
                     </span>
                     <Button
@@ -95,7 +95,7 @@ export default function UpgradesTab({ farm, onUpgrade }: UpgradesTabProps) {
                   </div>
                 )}
                 {maxed && (
-                  <div className="flex items-center gap-1 text-xs text-emerald-600">
+                  <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
                     <Check className="h-3 w-3" /> Fully Upgraded
                   </div>
                 )}

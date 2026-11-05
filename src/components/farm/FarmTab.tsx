@@ -16,12 +16,12 @@ const sortedCropEntries = (Object.entries(CROPS) as [string, CropDef][]).sort(
 );
 
 const tierColors: Record<number, string> = {
-  1: "border-green-300 bg-green-50/50",
-  2: "border-emerald-300 bg-emerald-50/50",
-  3: "border-teal-300 bg-teal-50/50",
-  4: "border-amber-300 bg-amber-50/50",
-  5: "border-orange-300 bg-orange-50/50",
-  6: "border-red-300 bg-red-50/50",
+  1: "border-green-300 dark:border-emerald-800 bg-green-50/50 dark:bg-emerald-950/50",
+  2: "border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/50",
+  3: "border-teal-300 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/50",
+  4: "border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/50",
+  5: "border-orange-300 dark:border-amber-800 bg-orange-50/50 dark:bg-amber-950/50",
+  6: "border-red-300 dark:border-rose-800 bg-red-50/50 dark:bg-rose-950/50",
 };
 
 interface FarmTabProps {
@@ -61,8 +61,13 @@ export default function FarmTab({
   onHarvest, onPlant, onSpray, onToggle,
   onToggleAutoFarmerCrop, onToggleAutoSellerCrop,
 }: FarmTabProps) {
+  const [showAllSeeds, setShowAllSeeds] = useState(false);
+  const [showAutomationDetails, setShowAutomationDetails] = useState(false);
   const plantingMode = selectedSeed !== null;
   const allSeedEntries: [string, CropDef][] = [...sortedCropEntries, ...Object.values(hybridDefs).map(h => [h.id, getHybridAsCropDef(h)] as [string, CropDef])];
+
+  const ownedSeeds = allSeedEntries.filter(([id]) => (inventory[`seed_${id}`] ?? 0) > 0 || id === selectedSeed);
+  const visibleSeeds = showAllSeeds ? allSeedEntries : ownedSeeds;
 
   // Parse auto-seller crops
   let autoSellerCropsList: string[] = [];
@@ -97,29 +102,37 @@ export default function FarmTab({
   return (
     <div className="space-y-3">
       {/* Seed Pouch */}
-      <Card className="border-green-200 bg-white/70 backdrop-blur-sm">
+      <Card className="border-green-200 dark:border-emerald-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
         <CardContent className="p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Sprout className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-green-800">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <Sprout className="w-4 h-4 text-green-600 dark:text-emerald-400" />
+            <span className="text-sm font-medium text-green-800 dark:text-emerald-200">
               Seed Pouch
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="hidden sm:inline text-xs text-muted-foreground">
               {plantingMode
                 ? "Click an empty plot to plant"
                 : "Select a seed to start planting"}
             </span>
             {plantingMode && (
               <button
-                className="ml-auto text-xs text-red-500 hover:text-red-700 underline"
+                className="ml-auto text-xs text-red-500 dark:text-rose-400 hover:text-red-700 dark:hover:text-rose-300 underline"
                 onClick={() => onSelectSeed(null)}
               >
                 Cancel
               </button>
             )}
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
-            {allSeedEntries.map(([id, crop]) => {
+          <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>{ownedSeeds.length} seed type{ownedSeeds.length === 1 ? "" : "s"} available{selectedSeed ? ` · Planting ${allSeedEntries.find(([id]) => id === selectedSeed)?.[1].name ?? "seed"}` : ""}</span>
+            <button type="button" aria-pressed={showAllSeeds} onClick={() => setShowAllSeeds(v => !v)}
+              className="rounded-md border border-border px-2 py-1 font-semibold text-foreground hover:bg-muted">
+              {showAllSeeds ? "Show owned only" : `Show all (${allSeedEntries.length})`}
+            </button>
+          </div>
+          {visibleSeeds.length === 0 && <p className="rounded-lg bg-muted/60 p-3 text-center text-xs text-muted-foreground">Your seed pouch is empty. Buy seeds in the Shop to start planting.</p>}
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
+            {visibleSeeds.map(([id, crop]) => {
               const count = inventory[`seed_${id}`] ?? 0;
               const isSelected = selectedSeed === id;
               const unlocked = isCropUnlocked(crop, level);
@@ -136,28 +149,28 @@ export default function FarmTab({
                         ? toast.info(`${crop.emoji} ${crop.name} unlocks at Lv.${crop.requiredLevel}`)
                         : toast.info(`No ${crop.name} seeds – buy some in the Shop!`)
                   }
-                  className={`relative flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                  className={`relative flex min-h-14 flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg border-2 text-sm font-medium transition-all ${
                     isSelected
-                      ? "border-green-500 bg-green-50 shadow-md"
+                      ? "border-green-500 dark:border-emerald-700 bg-green-50 dark:bg-emerald-950/45 shadow-md"
                       : canSelect
-                        ? "border-green-200 bg-white hover:border-green-300 hover:bg-green-50/50"
+                        ? "border-green-200 dark:border-emerald-800 bg-white dark:bg-slate-900 hover:border-green-300 dark:hover:border-emerald-800 hover:bg-green-50/50 dark:hover:bg-emerald-950/50"
                         : !unlocked
-                          ? "border-gray-200 bg-gray-50 cursor-not-allowed"
-                          : "border-gray-200 bg-gray-50/50 cursor-not-allowed"
+                          ? "border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/40 cursor-not-allowed"
+                          : "border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/50 cursor-not-allowed"
                   }`}
                 >
                   <span className="text-lg leading-none">
                     {unlocked ? crop.emoji : "🔒"}
                   </span>
-                  <span className={`text-[10px] leading-tight text-center truncate w-full ${canSelect ? "text-green-700" : "text-gray-400"}`}>
+                  <span className={`text-[10px] leading-tight text-center truncate w-full ${canSelect ? "text-green-700 dark:text-emerald-300" : "text-gray-400 dark:text-slate-400"}`}>
                     {crop.name}
                   </span>
                   {unlocked ? (
-                    <span className={`text-[10px] font-bold ${count > 0 ? "text-amber-700" : "text-gray-400"}`}>
+                    <span className={`text-[10px] font-bold ${count > 0 ? "text-amber-700 dark:text-amber-300" : "text-gray-400 dark:text-slate-400"}`}>
                       ×{count}
                     </span>
                   ) : (
-                    <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+                    <span className="flex items-center gap-0.5 text-[10px] text-gray-400 dark:text-slate-400">
                       <Lock className="w-2.5 h-2.5" />
                       Lv.{crop.requiredLevel}
                     </span>
@@ -170,7 +183,7 @@ export default function FarmTab({
       </Card>
 
       {/* Farm Grid */}
-      <Card className="border-green-200 bg-gradient-to-br from-amber-50/50 via-green-50/30 to-emerald-50/50 overflow-hidden">
+      <Card className="border-green-200 dark:border-emerald-800 bg-gradient-to-br from-amber-50/50 dark:from-amber-950/50 via-green-50/30 dark:via-emerald-950/30 to-emerald-50/50 dark:to-emerald-950/50 overflow-hidden">
         <CardContent className="p-3 sm:p-4">
           <div
             className="grid gap-1.5 sm:gap-2"
@@ -207,15 +220,15 @@ export default function FarmTab({
                     className={`relative aspect-square rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all border-2 overflow-hidden ${
                       isEmpty
                         ? plantingMode && selectedSeed
-                          ? "border-dashed border-green-400 bg-amber-100/60 hover:bg-green-100/60 hover:border-green-500 shadow-sm"
-                          : "border-dashed border-amber-300 bg-amber-100/40"
+                          ? "border-dashed border-green-400 dark:border-emerald-700 bg-amber-100/60 dark:bg-amber-950/60 hover:bg-green-100/60 dark:hover:bg-emerald-950/60 hover:border-green-500 dark:hover:border-emerald-700 shadow-sm"
+                          : "border-dashed border-amber-300 dark:border-amber-800 bg-amber-100/40 dark:bg-amber-950/40"
                         : isMature
-                          ? "border-yellow-400 bg-yellow-50 shadow-md hover:shadow-lg hover:border-yellow-500"
+                          ? "border-yellow-400 dark:border-amber-700 bg-yellow-50 dark:bg-amber-950/45 shadow-md hover:shadow-lg hover:border-yellow-500 dark:hover:border-amber-700"
                           : isWithered
-                            ? "border-gray-400 bg-gray-100 hover:border-gray-500"
+                            ? "border-gray-400 dark:border-slate-700 bg-gray-100 dark:bg-slate-800/40 hover:border-gray-500 dark:hover:border-slate-700"
                             : isPest
-                              ? "border-red-500 bg-red-50 hover:border-red-600"
-                              : "border-green-300 bg-green-50/50"
+                              ? "border-red-500 dark:border-rose-700 bg-red-50 dark:bg-rose-950/45 hover:border-red-600 dark:hover:border-rose-700"
+                              : "border-green-300 dark:border-emerald-800 bg-green-50/50 dark:bg-emerald-950/50"
                     }`}
                   >
                     {/* Mature golden glow */}
@@ -247,7 +260,7 @@ export default function FarmTab({
                     {/* Progress bar for growing */}
                     {isGrowing && (
                       <div className="w-full px-1 mt-0.5 relative z-10">
-                        <div className="h-1.5 bg-green-200 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-green-200 dark:bg-emerald-900/40 rounded-full overflow-hidden">
                           <motion.div
                             className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
                             initial={{ width: 0 }}
@@ -256,16 +269,16 @@ export default function FarmTab({
                           />
                         </div>
                         <div className="flex items-center justify-between mt-0.5">
-                          <span className="text-[9px] sm:text-[10px] text-green-600 font-semibold">
+                          <span className="text-[9px] sm:text-[10px] text-green-600 dark:text-emerald-400 font-semibold">
                             {Math.round(plot.growthPercent)}%
                           </span>
                           {plot.timeRemaining > 0 && (
-                            <span className="text-[9px] sm:text-[10px] text-green-500">
+                            <span className="text-[9px] sm:text-[10px] text-green-500 dark:text-emerald-400">
                               {formatDuration(plot.timeRemaining)}
                             </span>
                           )}
                         </div>
-                        <span className="text-[9px] sm:text-[10px] text-green-600 font-medium block text-center truncate">
+                        <span className="text-[9px] sm:text-[10px] text-green-600 dark:text-emerald-400 font-medium block text-center truncate">
                           {plot.cropName}
                         </span>
                       </div>
@@ -273,22 +286,22 @@ export default function FarmTab({
 
                     {/* Labels */}
                     {isEmpty && plantingMode && selectedSeed && (
-                      <span className="text-[10px] text-green-600 font-bold mt-0.5 relative z-10">
+                      <span className="text-[10px] text-green-600 dark:text-emerald-400 font-bold mt-0.5 relative z-10">
                         Plant
                       </span>
                     )}
                     {isMature && (
-                      <span className="text-[10px] text-yellow-700 font-bold mt-0.5 relative z-10">
+                      <span className="text-[10px] text-yellow-700 dark:text-amber-300 font-bold mt-0.5 relative z-10">
                         Harvest!
                       </span>
                     )}
                     {isWithered && (
-                      <span className="text-[10px] text-gray-500 font-bold mt-0.5 relative z-10">
+                      <span className="text-[10px] text-gray-500 dark:text-slate-400 font-bold mt-0.5 relative z-10">
                         Clear
                       </span>
                     )}
                     {isPest && (
-                      <span className="text-[10px] text-red-600 font-bold mt-0.5 relative z-10">
+                      <span className="text-[10px] text-red-600 dark:text-rose-400 font-bold mt-0.5 relative z-10">
                         {farm.medicineCount > 0 ? "Cure 💊" : "No 💊!"}
                       </span>
                     )}
@@ -302,23 +315,23 @@ export default function FarmTab({
           <div className="mt-3 space-y-2">
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground items-center">
               <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded border-2 border-dashed border-amber-300 bg-amber-100/40" />
+                <span className="w-3 h-3 rounded border-2 border-dashed border-amber-300 dark:border-amber-800 bg-amber-100/40 dark:bg-amber-950/40" />
                 Empty
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded border-2 border-green-300 bg-green-50" />
+                <span className="w-3 h-3 rounded border-2 border-green-300 dark:border-emerald-800 bg-green-50 dark:bg-emerald-950/45" />
                 Growing
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded border-2 border-yellow-400 bg-yellow-50" />
+                <span className="w-3 h-3 rounded border-2 border-yellow-400 dark:border-amber-700 bg-yellow-50 dark:bg-amber-950/45" />
                 Ready
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded border-2 border-gray-400 bg-gray-100" />
+                <span className="w-3 h-3 rounded border-2 border-gray-400 dark:border-slate-700 bg-gray-100 dark:bg-slate-800/40" />
                 Withered
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded border-2 border-red-500 bg-red-50" />
+                <span className="w-3 h-3 rounded border-2 border-red-500 dark:border-rose-700 bg-red-50 dark:bg-rose-950/45" />
                 Pest
                 <span className="relative group">
                   <Info className="w-3 h-3 text-muted-foreground cursor-help" />
@@ -329,14 +342,14 @@ export default function FarmTab({
               </span>
               {farm.medicineMax > 0 && (
                 <span className="flex items-center gap-1 font-medium" title={farm.medicineNextRefillSec > 0 && farm.medicineCount < farm.medicineMax ? `Next in ${formatDuration(Math.ceil(farm.medicineNextRefillSec))}` : farm.medicineCount >= farm.medicineMax ? 'Full!' : 'Increase Storage House level'}>
-                  💊 <span className={farm.medicineCount > 0 ? "text-emerald-600" : "text-red-500"}>{farm.medicineCount}/{farm.medicineMax}</span>
+                  💊 <span className={farm.medicineCount > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-rose-400"}>{farm.medicineCount}/{farm.medicineMax}</span>
                   {farm.medicineNextRefillSec > 0 && farm.medicineCount < farm.medicineMax && (
                     <span className="text-[9px] text-muted-foreground">({formatDuration(Math.ceil(farm.medicineNextRefillSec))})</span>
                   )}
                 </span>
               )}
               {farm.autoFarmerCount > 0 && (
-                <span className={`text-emerald-600 font-medium ml-auto ${!farm.autoFarmerEnabled ? "line-through opacity-50" : ""}`}>
+                <span className={`text-emerald-600 dark:text-emerald-400 font-medium ml-auto ${!farm.autoFarmerEnabled ? "line-through opacity-50" : ""}`}>
                   <Bot className="w-3 h-3 inline mr-0.5" />
                   {farm.autoFarmerCount} auto farmer{farm.autoFarmerCount > 1 ? "s" : ""}
                 </span>
@@ -348,9 +361,9 @@ export default function FarmTab({
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
                   {farm.autoFarmerCount > 0 && (
-                    <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
-                      <Bot className="h-3.5 w-3.5 text-emerald-600" />
-                      <span className="text-xs font-medium text-emerald-700">Auto Farmer</span>
+                    <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/45 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-1.5">
+                      <Bot className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">Auto Farmer</span>
                       <Switch
                         checked={farm.autoFarmerEnabled}
                         onCheckedChange={(checked) => onToggle("autoFarmer", checked)}
@@ -359,9 +372,9 @@ export default function FarmTab({
                     </div>
                   )}
                   {farm.autoSellerLevel > 0 && (
-                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
-                      <Banknote className="h-3.5 w-3.5 text-amber-600" />
-                      <span className="text-xs font-medium text-amber-700">Auto Seller</span>
+                    <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/45 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-1.5">
+                      <Banknote className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                      <span className="text-xs font-medium text-amber-700 dark:text-amber-300">Auto Seller</span>
                       <Switch
                         checked={farm.autoSellerEnabled}
                         onCheckedChange={(checked) => onToggle("autoSeller", checked)}
@@ -376,17 +389,22 @@ export default function FarmTab({
                   </span>
                 </div>
 
+                <button type="button" className="flex w-full items-center justify-between rounded-lg border border-border bg-card/60 px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted sm:hidden"
+                  aria-expanded={showAutomationDetails} onClick={() => setShowAutomationDetails((value) => !value)}>
+                  Configure automation targets <span aria-hidden="true">{showAutomationDetails ? "▴" : "▾"}</span>
+                </button>
+                <div className={showAutomationDetails ? "space-y-2" : "hidden space-y-2 sm:block"}>
                 {/* Auto Farmer Crop Selector */}
                 {farm.autoFarmerCount > 0 && (
-                  <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-2.5">
-                    <div className="text-[10px] text-emerald-600 font-medium mb-1.5">🌱 Plant target:</div>
+                  <div className="bg-emerald-50/50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-800 rounded-lg p-2.5">
+                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mb-1.5">🌱 Plant target:</div>
                     <div className="flex flex-wrap gap-1">
                       <button
                         onClick={() => onToggleAutoFarmerCrop(null)}
                         className={`px-2 py-1 rounded-md text-[10px] font-medium border transition-all ${
                           !farm.autoFarmerCrop
-                            ? "border-emerald-400 bg-emerald-100 text-emerald-800 shadow-sm"
-                            : "border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50"
+                            ? "border-emerald-400 dark:border-emerald-700 bg-emerald-100 dark:bg-emerald-950/45 text-emerald-800 dark:text-emerald-200 shadow-sm"
+                            : "border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/45"
                         }`}
                       >
                         Cheapest
@@ -397,8 +415,8 @@ export default function FarmTab({
                           onClick={() => onToggleAutoFarmerCrop(id)}
                           className={`flex items-center gap-0.5 px-2 py-1 rounded-md text-[10px] font-medium border transition-all ${
                             farm.autoFarmerCrop === id
-                              ? "border-emerald-400 bg-emerald-100 text-emerald-800 shadow-sm"
-                              : "border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50"
+                              ? "border-emerald-400 dark:border-emerald-700 bg-emerald-100 dark:bg-emerald-950/45 text-emerald-800 dark:text-emerald-200 shadow-sm"
+                              : "border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/45"
                           }`}
                         >
                           {crop.emoji} {crop.name}
@@ -406,7 +424,7 @@ export default function FarmTab({
                       ))}
                     </div>
                     {farm.autoFarmerCrop && (
-                      <div className="text-[9px] text-emerald-500 mt-1">
+                      <div className="text-[9px] text-emerald-500 dark:text-emerald-400 mt-1">
                         Falls back to cheapest if no seeds available
                       </div>
                     )}
@@ -415,8 +433,8 @@ export default function FarmTab({
 
                 {/* Auto Seller Crop Selector */}
                 {farm.autoSellerLevel > 0 && (
-                  <div className="bg-amber-50/50 border border-amber-100 rounded-lg p-2.5">
-                    <div className="text-[10px] text-amber-600 font-medium mb-1.5">💰 Sell targets:</div>
+                  <div className="bg-amber-50/50 dark:bg-amber-950/50 border border-amber-100 dark:border-amber-800 rounded-lg p-2.5">
+                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mb-1.5">💰 Sell targets:</div>
                     <div className="flex flex-wrap gap-1">
                       <button
                         onClick={() => {
@@ -427,8 +445,8 @@ export default function FarmTab({
                         }}
                         className={`px-2 py-1 rounded-md text-[10px] font-medium border transition-all ${
                           autoSellerCropsList.length === 0
-                            ? "border-amber-400 bg-amber-100 text-amber-800 shadow-sm"
-                            : "border-amber-200 bg-white text-amber-600 hover:bg-amber-50"
+                            ? "border-amber-400 dark:border-amber-700 bg-amber-100 dark:bg-amber-950/45 text-amber-800 dark:text-amber-200 shadow-sm"
+                            : "border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/45"
                         }`}
                       >
                         All
@@ -441,8 +459,8 @@ export default function FarmTab({
                             onClick={() => onToggleAutoSellerCrop(id, !isInList)}
                             className={`flex items-center gap-0.5 px-2 py-1 rounded-md text-[10px] font-medium border transition-all ${
                               isInList
-                                ? "border-amber-400 bg-amber-100 text-amber-800 shadow-sm"
-                                : "border-amber-200 bg-white text-amber-600 hover:bg-amber-50"
+                                ? "border-amber-400 dark:border-amber-700 bg-amber-100 dark:bg-amber-950/45 text-amber-800 dark:text-amber-200 shadow-sm"
+                                : "border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/45"
                             }`}
                           >
                             {crop.emoji} {crop.name}
@@ -451,12 +469,13 @@ export default function FarmTab({
                       })}
                     </div>
                     {autoSellerCropsList.length > 0 && (
-                      <div className="text-[9px] text-amber-500 mt-1">
+                      <div className="text-[9px] text-amber-500 dark:text-amber-400 mt-1">
                         Only selling {autoSellerCropsList.length} selected crop{autoSellerCropsList.length > 1 ? "s" : ""}
                       </div>
                     )}
                   </div>
                 )}
+                </div>
               </div>
             )}
           </div>

@@ -19,6 +19,7 @@ import {
 import { User, Plus, LogIn, Trash2, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { listPlayers, deletePlayer, exportFarms, importFarms } from "@/lib/browser-farm";
+import ThemeToggle from "@/components/farm/ThemeToggle";
 
 interface PlayerInfo {
   id: string;
@@ -103,13 +104,14 @@ export default function PlayerSelect({ onSelect }: PlayerSelectProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 via-emerald-50/30 to-amber-50 p-4">
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 dark:from-emerald-950/55 via-emerald-50/30 dark:via-emerald-950/30 to-amber-50 dark:to-amber-950/55 p-4">
+      <div className="absolute right-3 top-3"><ThemeToggle /></div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm"
       >
-        <Card className="border-green-200 shadow-lg">
+        <Card className="border-green-200 dark:border-emerald-800 shadow-lg">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl flex items-center justify-center gap-2">
               <span className="text-3xl">🌾</span>
@@ -120,7 +122,7 @@ export default function PlayerSelect({ onSelect }: PlayerSelectProps) {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-xs text-center text-green-800 bg-green-50 rounded-lg p-2">
+            <p className="text-xs text-center text-green-800 dark:text-emerald-200 bg-green-50 dark:bg-emerald-950/45 rounded-lg p-2">
               💾 Farms save automatically on this device. Export a backup to protect your progress when clearing browser data or changing devices.
             </p>
 
@@ -156,11 +158,11 @@ export default function PlayerSelect({ onSelect }: PlayerSelectProps) {
                     <div key={p.id} className="flex items-center gap-1">
                       <button
                         onClick={() => handleSelect(p.id)}
-                        className="flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg border border-green-100 hover:bg-green-50 hover:border-green-300 transition-all text-left group"
+                        className="flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg border border-green-100 dark:border-emerald-800 hover:bg-green-50 dark:hover:bg-emerald-950/45 hover:border-green-300 dark:hover:border-emerald-800 transition-all text-left group"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                            <User className="h-4 w-4 text-green-700" />
+                          <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-emerald-950/45 flex items-center justify-center shrink-0">
+                            <User className="h-4 w-4 text-green-700 dark:text-emerald-300" />
                           </div>
                           <div className="min-w-0">
                             <div className="font-medium text-sm truncate">{p.id}</div>
@@ -169,7 +171,7 @@ export default function PlayerSelect({ onSelect }: PlayerSelectProps) {
                             </div>
                           </div>
                         </div>
-                        <LogIn className="h-4 w-4 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                        <LogIn className="h-4 w-4 text-green-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                       </button>
 
                       {/* Delete button with confirmation */}
@@ -178,7 +180,7 @@ export default function PlayerSelect({ onSelect }: PlayerSelectProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 text-red-300 hover:text-red-600 hover:bg-red-50 shrink-0"
+                            className="h-9 w-9 text-red-300 dark:text-rose-400 hover:text-red-600 dark:hover:text-rose-400 hover:bg-red-50 dark:hover:bg-rose-950/45 shrink-0"
                             disabled={deleting !== null}
                           >
                             <Trash2 className="h-3.5 w-3.5" />

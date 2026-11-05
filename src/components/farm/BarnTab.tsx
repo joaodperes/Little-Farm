@@ -58,8 +58,8 @@ export default function BarnTab({ level, coins, inventory, animals, onBuy, onFee
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <Lock className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <div className="font-medium text-gray-500">Barn Locked</div>
+          <Lock className="h-10 w-10 text-gray-300 dark:text-slate-400 mx-auto mb-3" />
+          <div className="font-medium text-gray-500 dark:text-slate-400">Barn Locked</div>
           <div className="text-sm text-muted-foreground">Unlocks at Level 46</div>
           <div className="text-xs text-muted-foreground mt-1">Master all crop tiers first to unlock animals!</div>
         </CardContent>
@@ -82,7 +82,7 @@ export default function BarnTab({ level, coins, inventory, animals, onBuy, onFee
       <Card>
         <CardHeader className="pb-2 pt-3 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-            <ShoppingCart className="h-4 w-4 text-amber-600" /> Animal Shop
+            <ShoppingCart className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Animal Shop
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-3">
@@ -96,7 +96,7 @@ export default function BarnTab({ level, coins, inventory, animals, onBuy, onFee
               const feedCrop = CROPS[def.feedCrop];
 
               return (
-                <div key={def.id} className={`rounded-lg border p-3 space-y-1.5 ${locked ? "opacity-50 bg-gray-50" : ""}`}>
+                <div key={def.id} className={`rounded-lg border p-3 space-y-1.5 ${locked ? "opacity-50 bg-gray-50 dark:bg-slate-800/40" : ""}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{def.emoji}</span>
@@ -112,7 +112,7 @@ export default function BarnTab({ level, coins, inventory, animals, onBuy, onFee
                   <div className="text-[10px] text-muted-foreground">{def.description}</div>
                   <div className="text-[10px]">Feed: {feedCrop?.emoji} {feedCrop?.name} (have {feedCount})</div>
                   {locked ? (
-                    <div className="text-xs text-red-500">🔒 Requires Lv.{def.requiredLevel}</div>
+                    <div className="text-xs text-red-500 dark:text-rose-400">🔒 Requires Lv.{def.requiredLevel}</div>
                   ) : maxed ? (
                     <div className="text-xs text-muted-foreground">Max owned!</div>
                   ) : (

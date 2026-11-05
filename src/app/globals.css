@@ -79,14 +79,15 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  color-scheme: dark;
+  --background: oklch(0.17 0.023 156);
+  --foreground: oklch(0.955 0.011 120);
+  --card: oklch(0.22 0.025 158);
+  --card-foreground: oklch(0.955 0.011 120);
+  --popover: oklch(0.23 0.024 158);
+  --popover-foreground: oklch(0.955 0.011 120);
+  --primary: oklch(0.74 0.12 153);
+  --primary-foreground: oklch(0.15 0.023 156);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -120,3 +121,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+:root { color-scheme: light; }
+.farm-tabs { scrollbar-width: none; }
+.farm-tabs::-webkit-scrollbar { display: none; }
+@media (max-width: 639px) { .farm-tabs [data-state="active"] { background: var(--card); box-shadow: 0 1px 4px oklch(0 0 0 / 10%); } }

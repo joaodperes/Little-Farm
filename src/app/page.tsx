@@ -17,6 +17,7 @@ import { Modals } from "@/components/farm/Modals";
 import { type Quest, type MarketData, type SpecialTrader } from "@/lib/game-data";
 import { farmFetch as fetch, exportFarms, requestPersistentStorage } from "@/lib/browser-farm";
 import { Download } from "lucide-react";
+import ThemeToggle from "@/components/farm/ThemeToggle";
 
 // -- Types --
 
@@ -367,11 +368,11 @@ export default function FarmPage() {
   // -- Loading --
   if (loading || !state) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 via-emerald-50/30 to-amber-50 gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 dark:from-emerald-950/55 via-emerald-50/30 dark:via-emerald-950/30 to-amber-50 dark:to-amber-950/55 gap-4">
         {loadError && !loading ? (
           <>
             <span className="text-5xl">⚠️</span>
-            <p className="text-amber-800 font-medium text-center px-4">
+            <p className="text-amber-800 dark:text-amber-200 font-medium text-center px-4">
               Could not load {player}&apos;s farm.
             </p>
             <p className="text-sm text-muted-foreground text-center px-4 max-w-md">
@@ -386,7 +387,7 @@ export default function FarmPage() {
               </button>
               <button
                 onClick={handleSwitchPlayer}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors text-sm"
               >
                 Switch Player
               </button>
@@ -401,7 +402,7 @@ export default function FarmPage() {
             >
               🌻
             </motion.div>
-            <span className="text-lg text-amber-800 font-medium">
+            <span className="text-lg text-amber-800 dark:text-amber-200 font-medium">
               {loadError ? 'Retrying...' : `Loading ${player}&apos;s farm...`}
             </span>
           </>
@@ -412,10 +413,10 @@ export default function FarmPage() {
 
   // -- Main game --
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-50 via-emerald-50/30 to-amber-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-50 dark:from-emerald-950/55 via-emerald-50/30 dark:via-emerald-950/30 to-amber-50 dark:to-amber-950/55">
 
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-green-200/60 shadow-sm">
-        <div className="max-w-2xl mx-auto px-3 py-2.5">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-green-200/60 dark:border-emerald-800/60 shadow-sm">
+        <div className="max-w-2xl mx-auto px-2.5 py-1.5 sm:px-3 sm:py-2.5">
           <FarmHeader
             coins={state.farm.coins}
             level={state.farm.level}
@@ -426,47 +427,49 @@ export default function FarmPage() {
             autoFarmerEnabled={state.farm.autoFarmerEnabled}
             autoSellerEnabled={state.farm.autoSellerEnabled}
           />
-          <div className="flex items-center justify-center gap-4 text-xs">
-            <button onClick={handleSwitchPlayer} className="text-muted-foreground hover:text-green-700 transition-colors">
-              Playing as <span className="font-semibold text-green-700">{player}</span> · Switch Player
+          <div className="flex items-center justify-center gap-3 text-xs">
+            <button onClick={handleSwitchPlayer} className="min-w-0 truncate text-muted-foreground hover:text-green-700 dark:hover:text-emerald-300 transition-colors">
+              <span className="hidden sm:inline">Playing as <span className="font-semibold text-green-700 dark:text-emerald-300">{player}</span> · Switch Player</span>
+              <span className="sm:hidden">👤 {player} · Switch</span>
             </button>
-            <button onClick={handleBackup} className="inline-flex items-center gap-1 font-medium text-green-700 hover:text-green-900" title="Download backup of all farms">
-              <Download className="h-3.5 w-3.5" /> Back up
+            <button onClick={handleBackup} className="inline-flex items-center gap-1 font-medium text-green-700 dark:text-emerald-300 hover:text-green-900 dark:hover:text-emerald-200" title="Download backup of all farms">
+              <Download className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Back up</span><span className="sm:hidden">Save</span>
             </button>
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-2xl mx-auto w-full px-3 py-3">
+      <main className="flex-1 max-w-2xl mx-auto w-full min-w-0 px-2 py-2 sm:px-3 sm:py-3">
         <Tabs defaultValue="farm" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-4">
-            <TabsTrigger value="farm" className="text-xs gap-1 px-1">
+          <TabsList aria-label="Game sections" className="farm-tabs mb-2 flex h-auto w-full max-w-full justify-start gap-1 overflow-x-auto rounded-xl p-1 sm:mb-4 sm:grid sm:grid-cols-7">
+            <TabsTrigger value="farm" className="min-w-[72px] shrink-0 flex-col gap-0 px-2 py-1 text-[11px] sm:min-w-0 sm:flex-row sm:gap-1 sm:px-1 sm:text-xs">
               <span>🌾</span>
-              <span className="hidden sm:inline">Farm</span>
+              <span>Farm</span>
             </TabsTrigger>
-            <TabsTrigger value="shop" className="text-xs gap-1 px-1">
+            <TabsTrigger value="shop" className="min-w-[72px] shrink-0 flex-col gap-0 px-2 py-1 text-[11px] sm:min-w-0 sm:flex-row sm:gap-1 sm:px-1 sm:text-xs">
               <span>🏪</span>
-              <span className="hidden sm:inline">Shop</span>
+              <span>Shop</span>
             </TabsTrigger>
-            <TabsTrigger value="upgrades" className="text-xs gap-1 px-1">
+            <TabsTrigger value="upgrades" className="min-w-[72px] shrink-0 flex-col gap-0 px-2 py-1 text-[11px] sm:min-w-0 sm:flex-row sm:gap-1 sm:px-1 sm:text-xs">
               <span>🔧</span>
-              <span className="hidden sm:inline">Upgrades</span>
+              <span>Upgrades</span>
             </TabsTrigger>
-            <TabsTrigger value="quests" className="text-xs gap-1 px-1">
+            <TabsTrigger value="quests" className="min-w-[72px] shrink-0 flex-col gap-0 px-2 py-1 text-[11px] sm:min-w-0 sm:flex-row sm:gap-1 sm:px-1 sm:text-xs">
               <span>📜</span>
-              <span className="hidden sm:inline">Quests</span>
+              <span>Quests</span>
             </TabsTrigger>
-            <TabsTrigger value="mastery" className="text-xs gap-1 px-1">
+            <TabsTrigger value="mastery" className="min-w-[72px] shrink-0 flex-col gap-0 px-2 py-1 text-[11px] sm:min-w-0 sm:flex-row sm:gap-1 sm:px-1 sm:text-xs">
               <span>⭐</span>
-              <span className="hidden sm:inline">Mastery</span>
+              <span>Mastery</span>
             </TabsTrigger>
-            <TabsTrigger value="barn" className="text-xs gap-1 px-1">
+            <TabsTrigger value="barn" className="min-w-[72px] shrink-0 flex-col gap-0 px-2 py-1 text-[11px] sm:min-w-0 sm:flex-row sm:gap-1 sm:px-1 sm:text-xs">
               <span>🏠</span>
-              <span className="hidden sm:inline">Barn</span>
+              <span>Barn</span>
             </TabsTrigger>
-            <TabsTrigger value="seedlab" className="text-xs gap-1 px-1">
+            <TabsTrigger value="seedlab" className="min-w-[72px] shrink-0 flex-col gap-0 px-2 py-1 text-[11px] sm:min-w-0 sm:flex-row sm:gap-1 sm:px-1 sm:text-xs">
               <span>🧬</span>
-              <span className="hidden sm:inline">Lab</span>
+              <span>Lab</span>
             </TabsTrigger>
           </TabsList>
 
@@ -545,7 +548,7 @@ export default function FarmPage() {
         </Tabs>
       </main>
 
-      <footer className="mt-auto border-t border-green-200/60 bg-white/60 backdrop-blur-sm">
+      <footer className="mt-auto hidden border-t border-green-200/60 dark:border-emerald-800/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm sm:block">
         <div className="max-w-2xl mx-auto px-3 py-2.5 text-center text-xs text-muted-foreground">
           Little Farm Simulator · Crops grow while you are away 🌱
         </div>

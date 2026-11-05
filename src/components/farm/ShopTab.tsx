@@ -36,11 +36,14 @@ export default function ShopTab({
 }: ShopTabProps) {
   const [buyQty, setBuyQty] = useState<Record<string, number>>({});
   const [sellQty, setSellQty] = useState<Record<string, number>>({});
+  const [mobileSection, setMobileSection] = useState<"seeds" | "sell" | "traders" | "market">("seeds");
+  const [showLockedSeeds, setShowLockedSeeds] = useState(false);
+  const [seedSearch, setSeedSearch] = useState("");
 
   const demandIcon = (trend: string, demand: number) => {
-    if (trend === "up" || demand > 1.1) return <TrendingUp className="h-3 w-3 text-green-600" />;
-    if (trend === "down" || demand < 0.9) return <TrendingDown className="h-3 w-3 text-red-500" />;
-    return <Minus className="h-3 w-3 text-gray-400" />;
+    if (trend === "up" || demand > 1.1) return <TrendingUp className="h-3 w-3 text-green-600 dark:text-emerald-400" />;
+    if (trend === "down" || demand < 0.9) return <TrendingDown className="h-3 w-3 text-red-500 dark:text-rose-400" />;
+    return <Minus className="h-3 w-3 text-gray-400 dark:text-slate-400" />;
   };
 
   const harvestedCrops = useMemo(
@@ -89,15 +92,31 @@ export default function ShopTab({
     return statuses;
   };
 
-  const activeTraders = traders.filter((t) => !t.fulfilled);
-  const fulfilledTraders = traders.filter((t) => t.fulfilled);
+  const visibleSeeds = sortedCropEntries.filter(([, crop]) =>
+    (showLockedSeeds || isCropUnlocked(crop, farm.level)) &&
+    crop.name.toLowerCase().includes(seedSearch.trim().toLowerCase())
+  );
 
   return (
     <div className="space-y-3">
+      <nav aria-label="Shop sections" className="grid grid-cols-4 gap-1 rounded-xl border border-border bg-card/90 p-1 sm:hidden">
+        {([
+          ["seeds", "🌱", "Buy"],
+          ["sell", "🪙", "Sell"],
+          ["traders", "📦", "Traders"],
+          ["market", "📊", "Prices"],
+        ] as const).map(([id, emoji, label]) => (
+          <button key={id} type="button" onClick={() => setMobileSection(id)} aria-current={mobileSection === id ? "page" : undefined}
+            className={`flex min-h-11 flex-col items-center justify-center rounded-lg px-1 py-1 text-[11px] font-semibold transition-colors ${mobileSection === id ? "bg-emerald-600 text-white shadow-sm" : "text-muted-foreground hover:bg-muted"}`}>
+            <span className="text-base leading-none" aria-hidden="true">{emoji}</span>{label}
+          </button>
+        ))}
+      </nav>
+      <section aria-label="Special traders" className={mobileSection === "traders" ? "space-y-3" : "hidden space-y-3 sm:block"}>
       {/* Special Traders */}
-      <Card className="border-purple-200 bg-gradient-to-br from-purple-50/80 to-amber-50/50 backdrop-blur-sm">
+      <Card className="border-purple-200 dark:border-violet-800 bg-gradient-to-br from-purple-50/80 dark:from-violet-950/80 to-amber-50/50 dark:to-amber-950/50 backdrop-blur-sm">
         <CardHeader className="pb-2 pt-3 px-4">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-purple-800">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-purple-800 dark:text-violet-200">
             <Package className="h-4 w-4" />
             Special Traders
             <span className="text-xs font-normal text-muted-foreground">
@@ -123,10 +142,10 @@ export default function ShopTab({
                     key={trader.id}
                     className={`border backdrop-blur-sm overflow-hidden transition-all ${
                       trader.fulfilled
-                        ? "border-green-200 bg-green-50/50 opacity-70"
+                        ? "border-green-200 dark:border-emerald-800 bg-green-50/50 dark:bg-emerald-950/50 opacity-70"
                         : canFulfill
-                          ? "border-purple-300 bg-white/90 shadow-sm"
-                          : "border-gray-200 bg-white/60"
+                          ? "border-purple-300 dark:border-violet-800 bg-white/90 dark:bg-slate-900/90 shadow-sm"
+                          : "border-gray-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60"
                     }`}
                   >
                     <CardContent className="p-3">
@@ -135,18 +154,18 @@ export default function ShopTab({
                         <span className="text-2xl shrink-0">{trader.emoji}</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <h3 className={`font-bold text-sm ${trader.fulfilled ? "text-green-700" : "text-purple-800"}`}>
+                            <h3 className={`font-bold text-sm ${trader.fulfilled ? "text-green-700 dark:text-emerald-300" : "text-purple-800 dark:text-violet-200"}`}>
                               {trader.name}
                             </h3>
                             {trader.fulfilled && (
-                              <Badge className="text-[10px] bg-green-100 text-green-700 border-green-300">
+                              <Badge className="text-[10px] bg-green-100 dark:bg-emerald-950/45 text-green-700 dark:text-emerald-300 border-green-300 dark:border-emerald-800">
                                 <Check className="h-2.5 w-2.5 mr-0.5" /> Fulfilled
                               </Badge>
                             )}
                             <Badge
                               variant="outline"
                               className={`text-[10px] px-1.5 py-0 shrink-0 ${
-                                trader.fulfilled ? "border-green-300 text-green-600" : "border-purple-300 text-purple-600"
+                                trader.fulfilled ? "border-green-300 dark:border-emerald-800 text-green-600 dark:text-emerald-400" : "border-purple-300 dark:border-violet-800 text-purple-600 dark:text-violet-400"
                               }`}
                             >
                               +{Math.round((trader.premiumRate - 1) * 100)}% premium
@@ -167,18 +186,18 @@ export default function ShopTab({
                             <div
                               key={cropType}
                               className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${
-                                trader.fulfilled ? "bg-green-100/50" : met ? "bg-emerald-50" : "bg-red-50"
+                                trader.fulfilled ? "bg-green-100/50 dark:bg-emerald-950/50" : met ? "bg-emerald-50 dark:bg-emerald-950/45" : "bg-red-50 dark:bg-rose-950/45"
                               }`}
                             >
                               <span>{crop?.emoji ?? "?"}</span>
-                              <span className={met ? "text-emerald-700" : "text-red-700"}>
+                              <span className={met ? "text-emerald-700 dark:text-emerald-300" : "text-red-700 dark:text-rose-300"}>
                                 {crop?.name ?? cropType}
                               </span>
                               <span className="flex-1" />
-                              <span className={`font-mono font-medium ${met ? "text-emerald-600" : "text-red-600"}`}>
+                              <span className={`font-mono font-medium ${met ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-rose-400"}`}>
                                 {Math.min(have, need)}/{need}
                               </span>
-                              {met && !trader.fulfilled && <Check className="h-3 w-3 text-emerald-500" />}
+                              {met && !trader.fulfilled && <Check className="h-3 w-3 text-emerald-500 dark:text-emerald-400" />}
                             </div>
                           );
                         })}
@@ -187,17 +206,17 @@ export default function ShopTab({
                       {/* Footer: reward + button */}
                       <div className="mt-2 flex items-center gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-amber-700 font-semibold">
+                          <p className="text-xs text-amber-700 dark:text-amber-300 font-semibold">
                             Reward: {trader.totalReward} 🪙
                           </p>
                           {!trader.fulfilled && bonus > 0 && (
-                            <p className="text-[10px] text-emerald-600">
+                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
                               +{bonus}🪙 above current market prices
                             </p>
                           )}
                         </div>
                         {trader.fulfilled ? (
-                          <div className="flex items-center gap-1 text-green-600 text-xs font-medium">
+                          <div className="flex items-center gap-1 text-green-600 dark:text-emerald-400 text-xs font-medium">
                             <Check className="h-3.5 w-3.5" /> Done
                           </div>
                         ) : (
@@ -207,7 +226,7 @@ export default function ShopTab({
                             className={`text-xs h-7 ${
                               canFulfill
                                 ? "bg-purple-600 hover:bg-purple-700 text-white"
-                                : "bg-gray-200 text-gray-500"
+                                : "bg-gray-200 dark:bg-slate-700/40 text-gray-500 dark:text-slate-400"
                             }`}
                             onClick={() => onFulfillTrader(trader.id)}
                           >
@@ -228,9 +247,11 @@ export default function ShopTab({
           )}
         </CardContent>
       </Card>
+      </section>
 
+      <section aria-label="Market prices" className={mobileSection === "market" ? "space-y-3" : "hidden space-y-3 sm:block"}>
       {/* Market Overview */}
-      <Card className="border-blue-200 bg-white/70 backdrop-blur-sm">
+      <Card className="border-blue-200 dark:border-sky-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
         <CardHeader className="pb-2 pt-3 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             📊 Market{" "}
@@ -255,18 +276,18 @@ export default function ShopTab({
                 >
                   <span className="w-5 text-center text-sm">{crop.emoji}</span>
                   <span
-                    className={`w-20 sm:w-24 truncate font-medium ${isHigh ? "text-green-700" : isLow ? "text-red-600" : "text-foreground"}`}
+                    className={`w-20 sm:w-24 truncate font-medium ${isHigh ? "text-green-700 dark:text-emerald-300" : isLow ? "text-red-600 dark:text-rose-400" : "text-foreground"}`}
                   >
                     {crop.name}
                   </span>
                   <span className="flex-1" />
                   <span
-                    className={`font-mono text-[11px] ${isHigh ? "text-green-600 font-bold" : isLow ? "text-red-500 font-bold" : "text-muted-foreground"}`}
+                    className={`font-mono text-[11px] ${isHigh ? "text-green-600 dark:text-emerald-400 font-bold" : isLow ? "text-red-500 dark:text-rose-400 font-bold" : "text-muted-foreground"}`}
                   >
                     {demand.toFixed(2)}×
                   </span>
                   {demandIcon(trend, demand)}
-                  <span className="w-14 text-right font-medium text-amber-700">
+                  <span className="w-14 text-right font-medium text-amber-700 dark:text-amber-300">
                     {sellPrice} 🪙
                   </span>
                 </div>
@@ -275,13 +296,23 @@ export default function ShopTab({
           </div>
         </CardContent>
       </Card>
+      </section>
 
+      <section aria-label="Buy seeds" className={mobileSection === "seeds" ? "space-y-2" : "hidden space-y-2 sm:block"}>
       {/* Buy Seeds */}
-      <h2 className="text-base font-bold text-green-800 flex items-center gap-2">
+      <h2 className="text-base font-bold text-green-800 dark:text-emerald-200 flex items-center gap-2">
         🌱 Buy Seeds
       </h2>
-      <div className="grid gap-2 grid-cols-2 sm:grid-cols-3">
-        {sortedCropEntries.map(([id, crop]) => {
+      <div className="flex flex-wrap items-center gap-2 rounded-lg bg-card/70 p-2">
+        <label className="sr-only" htmlFor="shop-seed-search">Search seeds</label>
+        <input id="shop-seed-search" type="search" value={seedSearch} onChange={(event) => setSeedSearch(event.target.value)}
+          placeholder="Find a seed…" className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground" />
+        <button type="button" onClick={() => setShowLockedSeeds((current) => !current)}
+          className="min-h-9 rounded-md border border-border px-2 text-xs font-medium text-foreground hover:bg-muted"
+          aria-pressed={showLockedSeeds}>{showLockedSeeds ? "Hide locked" : "Show locked"}</button>
+      </div>
+      <div className="grid gap-1.5 grid-cols-2 sm:grid-cols-3 sm:gap-2">
+        {visibleSeeds.map(([id, crop]) => {
           const unlocked = isCropUnlocked(crop, farm.level);
           const qty = buyQty[id] || 1;
           const totalCost = crop.seedCost * qty;
@@ -292,14 +323,14 @@ export default function ShopTab({
           return (
             <Card
               key={id}
-              className={`border bg-white/70 backdrop-blur-sm overflow-hidden transition-opacity ${unlocked ? "border-green-200" : "border-gray-200 opacity-60"}`}
+              className={`border bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm overflow-hidden transition-opacity ${unlocked ? "border-green-200 dark:border-emerald-800" : "border-gray-200 dark:border-slate-800 opacity-60"}`}
             >
-              <CardContent className="p-3">
-                <div className="flex items-start gap-2">
-                  <div className="text-3xl shrink-0">{crop.emoji}</div>
+              <CardContent className="p-2 sm:p-3">
+                <div className="flex items-start gap-1.5 sm:gap-2">
+                  <div className="text-xl sm:text-3xl shrink-0">{crop.emoji}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h3 className={`font-bold text-sm truncate ${unlocked ? "text-green-800" : "text-gray-500"}`}>
+                      <h3 className={`font-bold text-sm truncate ${unlocked ? "text-green-800 dark:text-emerald-200" : "text-gray-500 dark:text-slate-400"}`}>
                         {crop.name}
                       </h3>
                       <Badge
@@ -309,28 +340,28 @@ export default function ShopTab({
                         {tierLabel}
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                    <p className="hidden sm:block text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
                       {crop.description}
                     </p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                    <div className="hidden sm:flex mt-1.5 flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
                       <span className="text-muted-foreground">⏱ {formatDuration(crop.growthTimeSec)}</span>
-                      <span className="text-amber-600">{crop.seedCost}🪙</span>
-                      <span className="text-emerald-600">+{crop.xpReward} XP</span>
+                      <span className="text-amber-600 dark:text-amber-400">{crop.seedCost}🪙</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">+{crop.xpReward} XP</span>
                     </div>
-                    <Separator className="my-2" />
+                    <Separator className="my-1.5 sm:my-2" />
                     {unlocked ? (
-                      <div className="flex items-center gap-1.5">
-                        <div className="flex items-center border border-green-200 rounded-lg overflow-hidden">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                        <div className="flex items-center border border-green-200 dark:border-emerald-800 rounded-lg overflow-hidden">
                           <button
                             onClick={() => setBuyQty((p) => ({ ...p, [id]: Math.max(1, (p[id] || 1) - 1) }))}
-                            className="w-7 h-7 flex items-center justify-center text-green-700 hover:bg-green-100 transition-colors"
+                            className="w-6 sm:w-7 h-7 flex items-center justify-center text-green-700 dark:text-emerald-300 hover:bg-green-100 dark:hover:bg-emerald-950/45 transition-colors"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="w-7 text-center text-sm font-bold text-green-800">{qty}</span>
+                          <span className="w-6 sm:w-7 text-center text-sm font-bold text-green-800 dark:text-emerald-200">{qty}</span>
                           <button
                             onClick={() => setBuyQty((p) => ({ ...p, [id]: (p[id] || 1) + 1 }))}
-                            className="w-7 h-7 flex items-center justify-center text-green-700 hover:bg-green-100 transition-colors"
+                            className="w-6 sm:w-7 h-7 flex items-center justify-center text-green-700 dark:text-emerald-300 hover:bg-green-100 dark:hover:bg-emerald-950/45 transition-colors"
                           >
                             +
                           </button>
@@ -339,13 +370,13 @@ export default function ShopTab({
                           size="sm"
                           onClick={() => { onBuy(id, qty); setBuyQty((p) => ({ ...p, [id]: 1 })); }}
                           disabled={farm.coins < totalCost}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs h-7"
+                          className="flex-1 min-w-0 px-1 bg-green-600 hover:bg-green-700 text-white text-xs h-7"
                         >
                           Buy {totalCost}🪙
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
                         <Lock className="w-3.5 h-3.5" />
                         <span>Reach <strong>Lv.{crop.requiredLevel}</strong> to unlock</span>
                       </div>
@@ -360,15 +391,18 @@ export default function ShopTab({
           );
         })}
       </div>
+      {visibleSeeds.length === 0 && <p className="rounded-lg border border-border p-5 text-center text-sm text-muted-foreground">No seeds match your filters.</p>}
+      </section>
 
+      <section aria-label="Sell crops and products" className={mobileSection === "sell" ? "space-y-3" : "hidden space-y-3 sm:block"}>
       {/* Sell Harvested Crops */}
-      <h2 className="text-base font-bold text-amber-800 flex items-center gap-2">
+      <h2 className="text-base font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
         💰 Sell Harvested Crops
         {harvestedCrops.length > 0 && (
           <Button
             variant="outline"
             size="sm"
-            className="ml-auto text-xs border-amber-300 text-amber-700 hover:bg-amber-50 h-7"
+            className="ml-auto text-xs border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/45 h-7"
             onClick={() => harvestedCrops.forEach((c) => onSell(c.cropType, c.quantity))}
           >
             Sell All
@@ -376,7 +410,7 @@ export default function ShopTab({
         )}
       </h2>
       {harvestedCrops.length === 0 ? (
-        <Card className="border-amber-200 bg-white/70">
+        <Card className="border-amber-200 dark:border-amber-800 bg-white/70 dark:bg-slate-900/70">
           <CardContent className="py-8 text-center">
             <p className="text-sm text-muted-foreground">
               No harvested crops yet. Plant and harvest some crops!
@@ -397,19 +431,19 @@ export default function ShopTab({
             return (
               <Card
                 key={cropType}
-                className="border-amber-200 bg-white/70 backdrop-blur-sm"
+                className="border-amber-200 dark:border-amber-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm"
               >
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl shrink-0">{crop.emoji}</span>
+                <CardContent className="p-2 sm:p-3">
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
+                    <span className="text-xl sm:text-2xl shrink-0">{crop.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-amber-800 text-sm">
+                        <span className="font-medium text-amber-800 dark:text-amber-200 text-sm">
                           {crop.name}
                         </span>
                         <Badge
                           variant="secondary"
-                          className="text-[10px] bg-amber-100 text-amber-700"
+                          className="text-[10px] bg-amber-100 dark:bg-amber-950/45 text-amber-700 dark:text-amber-300"
                         >
                           ×{quantity}
                         </Badge>
@@ -418,24 +452,24 @@ export default function ShopTab({
                       <p className="text-xs text-muted-foreground">
                         {unitPrice} 🪙 each · {demand.toFixed(2)}× demand
                         {ml > 0 && (
-                          <span className="text-emerald-600 ml-1">(+{ml * 3}% mastery)</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 ml-1">(+{ml * 3}% mastery)</span>
                         )}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <div className="flex items-center border border-amber-200 rounded-lg overflow-hidden">
+                    <div className="flex w-full sm:w-auto items-center justify-end gap-1.5 shrink-0">
+                      <div className="flex items-center border border-amber-200 dark:border-amber-800 rounded-lg overflow-hidden">
                         <button
                           onClick={() => setSellQty((p) => ({ ...p, [cropType]: Math.max(1, (p[cropType] || 1) - 1) }))}
-                          className="w-6 h-7 flex items-center justify-center text-amber-700 hover:bg-amber-100 transition-colors"
+                          className="w-6 h-7 flex items-center justify-center text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/45 transition-colors"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-6 text-center text-xs font-bold text-amber-800">
+                        <span className="w-6 text-center text-xs font-bold text-amber-800 dark:text-amber-200">
                           {qty}
                         </span>
                         <button
                           onClick={() => setSellQty((p) => ({ ...p, [cropType]: Math.min(quantity, (p[cropType] || 1) + 1) }))}
-                          className="w-6 h-7 flex items-center justify-center text-amber-700 hover:bg-amber-100 transition-colors"
+                          className="w-6 h-7 flex items-center justify-center text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/45 transition-colors"
                         >
                           +
                         </button>
@@ -443,7 +477,7 @@ export default function ShopTab({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-amber-400 text-amber-700 hover:bg-amber-100 text-xs h-7"
+                        className="border-amber-400 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/45 text-xs h-7"
                         onClick={() => { onSell(cropType, qty); setSellQty((p) => ({ ...p, [cropType]: 1 })); }}
                       >
                         {totalPrice}🪙
@@ -460,7 +494,7 @@ export default function ShopTab({
       {/* Sell Animal Products */}
       {productEntries.length > 0 && (
         <>
-          <h2 className="text-base font-bold text-amber-800 flex items-center gap-2">
+          <h2 className="text-base font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
             🛒 Sell Animal Products
           </h2>
           <div className="space-y-2">
@@ -470,15 +504,15 @@ export default function ShopTab({
               return (
                 <Card
                   key={key}
-                  className="border-amber-200 bg-white/70 backdrop-blur-sm"
+                  className="border-amber-200 dark:border-amber-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm"
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl shrink-0">{animal.productEmoji}</span>
                       <div className="flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-amber-800 text-sm">{animal.productName}</span>
-                          <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-700">
+                          <span className="font-medium text-amber-800 dark:text-amber-200 text-sm">{animal.productName}</span>
+                          <Badge variant="secondary" className="text-[10px] bg-amber-100 dark:bg-amber-950/45 text-amber-700 dark:text-amber-300">
                             ×{count}
                           </Badge>
                         </div>
@@ -489,7 +523,7 @@ export default function ShopTab({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-amber-400 text-amber-700 hover:bg-amber-100 text-xs h-7"
+                        className="border-amber-400 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/45 text-xs h-7"
                         onClick={() => onSellProduct(key, count)}
                       >
                         Sell All ({animal.productSellPrice * count}🪙)
@@ -502,6 +536,7 @@ export default function ShopTab({
           </div>
         </>
       )}
+      </section>
     </div>
   );
 }

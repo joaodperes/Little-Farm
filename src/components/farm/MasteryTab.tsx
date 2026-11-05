@@ -36,7 +36,7 @@ export default function MasteryTab({
       <Card>
         <CardHeader className="pb-2 pt-3 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-            <Trophy className="h-4 w-4 text-amber-600" /> Crop Mastery
+            <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Crop Mastery
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-3">
@@ -56,7 +56,7 @@ export default function MasteryTab({
                 <div
                   key={crop.id}
                   className={`rounded-lg border p-2 space-y-1 ${
-                    hasHarvested ? "bg-white" : "bg-gray-50 opacity-50"
+                    hasHarvested ? "bg-white dark:bg-slate-900" : "bg-gray-50 dark:bg-slate-800/40 opacity-50"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -72,7 +72,7 @@ export default function MasteryTab({
                   </div>
                   <div className="text-[10px] text-muted-foreground">
                     {count} harvests
-                    {ml > 0 && <span className="text-emerald-600 ml-1">(+{ml * 3}% sell, +{ml * 2}% XP)</span>}
+                    {ml > 0 && <span className="text-emerald-600 dark:text-emerald-400 ml-1">(+{ml * 3}% sell, +{ml * 2}% XP)</span>}
                   </div>
                   {nextRank && hasHarvested ? (
                     <div>
@@ -82,7 +82,7 @@ export default function MasteryTab({
                       </div>
                     </div>
                   ) : ml >= 6 ? (
-                    <div className="text-[9px] text-amber-600 font-medium">👑 MAX MASTERY</div>
+                    <div className="text-[9px] text-amber-600 dark:text-amber-400 font-medium">👑 MAX MASTERY</div>
                   ) : (
                     <div className="text-[9px] text-muted-foreground">{MASTERY_RANKS[0].emoji} Next: {MASTERY_RANKS[0].threshold} harvests</div>
                   )}
@@ -97,7 +97,7 @@ export default function MasteryTab({
       <Card>
         <CardHeader className="pb-2 pt-3 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-            <Trophy className="h-4 w-4 text-amber-600" /> Achievements
+            <Trophy className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Achievements
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-3">
@@ -108,17 +108,17 @@ export default function MasteryTab({
                 <div
                   key={ach.id}
                   className={`flex items-center gap-2 rounded-lg border p-2 ${
-                    done ? "bg-amber-50 border-amber-300" : "bg-gray-50"
+                    done ? "bg-amber-50 dark:bg-amber-950/45 border-amber-300 dark:border-amber-800" : "bg-gray-50 dark:bg-slate-800/40"
                   }`}
                 >
                   <span className={`text-lg ${done ? "" : "grayscale opacity-40"}`}>{ach.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-xs font-medium ${done ? "text-amber-800" : "text-muted-foreground"}`}>
+                    <div className={`text-xs font-medium ${done ? "text-amber-800 dark:text-amber-200" : "text-muted-foreground"}`}>
                       {ach.name}
                     </div>
                     <div className="text-[10px] text-muted-foreground truncate">{ach.description}</div>
                   </div>
-                  {done && <Check className="h-4 w-4 text-amber-600 shrink-0" />}
+                  {done && <Check className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />}
                 </div>
               );
             })}

@@ -48,8 +48,8 @@ export default function FarmHeader({
       {/* Title row */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🌾</span>
-          <h1 className="text-xl font-bold text-green-800 tracking-tight">
+          <span className="text-xl sm:text-2xl">🌾</span>
+          <h1 className="text-base sm:text-xl font-bold text-green-800 dark:text-emerald-200 tracking-tight">
             Little Farm
           </h1>
         </div>
@@ -57,7 +57,7 @@ export default function FarmHeader({
           {autoFarmerCount > 0 && (
             <Badge
               variant="secondary"
-              className={`gap-1 ${autoFarmerEnabled ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "opacity-50"}`}
+              className={`hidden sm:inline-flex gap-1 ${autoFarmerEnabled ? "bg-emerald-100 dark:bg-emerald-950/45 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" : "opacity-50"}`}
             >
               <Bot className="w-3 h-3" />
               ×{autoFarmerCount}
@@ -66,21 +66,21 @@ export default function FarmHeader({
           {autoSellerLevel > 0 && (
             <Badge
               variant="secondary"
-              className={`gap-1 ${autoSellerEnabled ? "bg-amber-100 text-amber-700 border-amber-200" : "opacity-50"}`}
+              className={`hidden sm:inline-flex gap-1 ${autoSellerEnabled ? "bg-amber-100 dark:bg-amber-950/45 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" : "opacity-50"}`}
             >
               <Banknote className="w-3 h-3" />
               Lv.{autoSellerLevel}
             </Badge>
           )}
-          <div className="flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-            <Coins className="w-3.5 h-3.5 text-amber-500" />
-            <span className="font-bold text-amber-700 text-sm">
+          <div className="flex min-w-0 items-center gap-1 bg-amber-50 dark:bg-amber-950/45 px-1.5 sm:px-2.5 py-1 rounded-full border border-amber-200 dark:border-amber-800">
+            <Coins className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+            <span className="max-w-[90px] truncate font-bold text-amber-700 dark:text-amber-300 text-xs sm:text-sm">
               {coins.toLocaleString()}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-            <Star className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="font-bold text-emerald-700 text-sm">
+          <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/45 px-1.5 sm:px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+            <Star className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+            <span className="font-bold text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm">
               Lv.{level}
             </span>
           </div>
@@ -90,7 +90,7 @@ export default function FarmHeader({
       {/* XP Bar */}
       <div className="mt-2 flex items-center gap-2">
         <button
-          className="text-[11px] font-medium text-emerald-600 whitespace-nowrap hover:text-emerald-800 transition-colors"
+          className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 whitespace-nowrap hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors"
           onClick={handleXpClick}
           title="Click to see next unlock"
         >
@@ -99,7 +99,7 @@ export default function FarmHeader({
         </button>
         <Progress
           value={xpPercent}
-          className="h-1.5 bg-emerald-100 flex-1"
+          className="h-1.5 bg-emerald-100 dark:bg-emerald-950/45 flex-1"
         />
         <span className="text-[10px] text-muted-foreground whitespace-nowrap">
           Lv.{level}

@@ -30,7 +30,7 @@ export default function QuestsTab({ quests, onClaim }: QuestsTabProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold flex items-center gap-1.5">
-          <Scroll className="h-4 w-4 text-amber-600" /> Daily Quests
+          <Scroll className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Daily Quests
         </h3>
         <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
           <Clock className="h-3 w-3" /> Resets in {timeUntilReset()}
@@ -54,7 +54,7 @@ export default function QuestsTab({ quests, onClaim }: QuestsTabProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
               >
-                <Card className={quest.completed && !quest.claimed ? "border-amber-400 bg-amber-50/30" : ""}>
+                <Card className={quest.completed && !quest.claimed ? "border-amber-400 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/30" : ""}>
                   <CardContent className="p-3 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
@@ -64,7 +64,7 @@ export default function QuestsTab({ quests, onClaim }: QuestsTabProps) {
                         </div>
                       </div>
                       {quest.claimed ? (
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 shrink-0">
+                        <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-950/45 text-emerald-700 dark:text-emerald-300 shrink-0">
                           <Check className="h-3 w-3 mr-0.5" /> Claimed ✓
                         </Badge>
                       ) : quest.completed ? (
