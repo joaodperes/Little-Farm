@@ -173,6 +173,17 @@ export default function FarmPage() {
     fetchState();
   };
 
+  const handleClear = async (plotId: string) => {
+    const res = await fetch(p("/api/farm/clear"), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plotId }),
+    });
+    const data = await res.json();
+    if (data.success) toast.success(data.message);
+    else toast.error(data.error || data.message || "Could not clear plot");
+    fetchState();
+  };
+
   const handlePlant = async (plotId: string, cropType: string) => {
     const res = await fetch(p("/api/farm/plant"), {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -485,6 +496,7 @@ export default function FarmPage() {
               onHarvest={handleHarvest}
               onPlant={handlePlant}
               onSpray={handleSpray}
+              onClear={handleClear}
               onToggle={handleToggle}
               onToggleAutoFarmerCrop={handleToggleAutoFarmerCrop}
               onToggleAutoSellerCrop={handleToggleAutoSellerCrop}

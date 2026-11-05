@@ -221,9 +221,10 @@ function advance(f:FarmSave,now:Date):{offlineProgress:any;dailyBonus:any} {
     }
   }
   for(const p of f.plots) {
-    if(p.state!=="growing" || !p.plantedAt || !p.cropType) continue;
+    // Infested crops still age: expired crops cannot be saved with medicine.
+    if((p.state!=="growing" && p.state!=="pest") || !p.plantedAt || !p.cropType) continue;
     if(withered(f,p,now))p.state="withered";
-    else if(progress(f,p,now)>=1)p.state="mature";
+    else if(p.state==="growing" && progress(f,p,now)>=1)p.state="mature";
   }
   let pests:string[]=[];
   if(shouldCheckPests(new Date(f.lastPestCheck),now)) {
@@ -350,7 +351,7 @@ export async function getFarmState(id:string):Promise<FarmStateView> {
   });
 }
 
-export type FarmAction = "harvest"|"plant"|"spray"|"buy"|"sell"|"upgrade"|"toggle"|"quests/claim"|"animals/buy"|"animals/feed"|"animals/collect"|"traders/fulfill"|"seed-lab/mix";
+export type FarmAction = "harvest"|"plant"|"spray"|"clear"|"buy"|"sell"|"upgrade"|"toggle"|"quests/claim"|"animals/buy"|"animals/feed"|"animals/collect"|"traders/fulfill"|"seed-lab/mix";
 export interface ActionResult {success?:boolean; error?:string;message?:string;leveledUp?:boolean;newLevel?:number;isNew?:boolean;hybrid?:any}
 function failure(error:string):ActionResult{return {success:false,error};}
 function positive(message:string,more:Partial<ActionResult>={}):ActionResult{return {success:true,message,...more};}
@@ -394,10 +395,22 @@ function act(f:FarmSave,action:FarmAction,b:any,now:Date):ActionResult {
       if(f.level>oldLevel)message+=` 🎉 LEVEL UP → Lv.${f.level}`;
       return positive(message,{leveledUp:f.level>oldLevel,newLevel:f.level});
     }
+    case "clear": {
+      if(!plot || (plot.state!=="pest" && plot.state!=="withered"))return failure("Only infested or withered crops can be cleared");
+      const cropName=plot.cropType?cropFor(f,plot.cropType)?.name??"crop":"crop";
+      plot.cropType=null;plot.plantedAt=null;plot.state="empty";
+      return positive(`Cleared ${cropName}. Plot is ready to plant again. No medicine used.`);
+    }
     case "spray":{
-      if(!plot||plot.state!=="pest")return failure("No pest on this plot");
-      if(f.medicineCount<=0)return failure(f.storageLevel<=0?"No medicine! Upgrade Storage House to generate medicine 💊":"No medicine left! Wait for Storage House to generate more 💊");
-      f.medicineCount--;plot.state="growing";
+      if(!plot||plot.state!=="pest")return failure("No pest on this plot (it may have withered). Clear it instead.");
+      // Guard even when the UI is stale or actions are queued.
+      if(withered(f,plot,now)){
+        plot.state="withered";
+        return failure("This crop already withered. Clear the plot instead — no medicine needed.");
+      }
+      if(f.medicineCount<=0)return failure(f.storageLevel<=0?"No medicine unlocked! Clear this plot for free, or upgrade Storage House to generate medicine 💊":"No medicine left! Clear this plot for free or wait for medicine 💊");
+      f.medicineCount--;
+      plot.state=progress(f,plot,now)>=1?"mature":"growing";
       return positive(`Used 💊 medicine! Crop saved! (${f.medicineCount} remaining)`);
     }
     case "sell":{

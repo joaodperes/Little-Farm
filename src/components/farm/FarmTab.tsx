@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Sprout, Lock, Bot, Banknote, Info } from "lucide-react";
 import {
@@ -51,6 +53,7 @@ interface FarmTabProps {
   onHarvest: (plotId: string) => void;
   onPlant: (plotId: string, cropType: string) => void;
   onSpray: (plotId: string) => void;
+  onClear: (plotId: string) => void;
   onToggle: (feature: "autoFarmer" | "autoSeller", enabled: boolean) => void;
   onToggleAutoFarmerCrop: (cropType: string | null) => void;
   onToggleAutoSellerCrop: (cropType: string, enabled: boolean) => void;
@@ -58,9 +61,10 @@ interface FarmTabProps {
 
 export default function FarmTab({
   farm, plots, inventory, hybridDefs, level, selectedSeed, onSelectSeed,
-  onHarvest, onPlant, onSpray, onToggle,
+  onHarvest, onPlant, onSpray, onClear, onToggle,
   onToggleAutoFarmerCrop, onToggleAutoSellerCrop,
 }: FarmTabProps) {
+  const [selectedPestPlotId, setSelectedPestPlotId] = useState<string | null>(null);
   const [showAllSeeds, setShowAllSeeds] = useState(false);
   const [showAutomationDetails, setShowAutomationDetails] = useState(false);
   const plantingMode = selectedSeed !== null;
@@ -81,13 +85,16 @@ export default function FarmTab({
   const availableCropsForSeller = sortedCropEntries
     .filter(([, crop]) => isCropUnlocked(crop, level));
 
+  const selectedPestPlot = plots.find((plot) => plot.id === selectedPestPlotId);
+  const isPestDialogOpen = selectedPestPlot?.state === "pest" || selectedPestPlot?.state === "withered";
+
   const handlePlotClick = (plot: typeof plots[0]) => {
     if (plot.state === "mature") {
       onHarvest(plot.id);
     } else if (plot.state === "pest") {
-      onSpray(plot.id);
+      setSelectedPestPlotId(plot.id);
     } else if (plot.state === "withered") {
-      onHarvest(plot.id);
+      onClear(plot.id);
     } else if (plot.state === "empty" && plantingMode && selectedSeed) {
       onPlant(plot.id, selectedSeed);
     } else if (plot.state === "empty") {
@@ -302,7 +309,7 @@ export default function FarmTab({
                     )}
                     {isPest && (
                       <span className="text-[10px] text-red-600 dark:text-rose-400 font-bold mt-0.5 relative z-10">
-                        {farm.medicineCount > 0 ? "Cure 💊" : "No 💊!"}
+                        Manage 🐛
                       </span>
                     )}
                   </motion.div>
@@ -336,7 +343,7 @@ export default function FarmTab({
                 <span className="relative group">
                   <Info className="w-3 h-3 text-muted-foreground cursor-help" />
                   <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1.5 bg-gray-900 text-white text-[9px] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                    Pests strike growing crops every ~1min (0.4% chance per plot, reduced by Pesticide upgrade). Cure with 💊 medicine from Storage House!
+                    Pests can be cured with medicine or cleared for free. Infested crops eventually wither and cannot be saved.
                   </span>
                 </span>
               </span>
@@ -481,6 +488,51 @@ export default function FarmTab({
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={Boolean(selectedPestPlotId && isPestDialogOpen)}
+        onOpenChange={(open) => { if (!open) setSelectedPestPlotId(null); }}>
+        <DialogContent className="max-w-sm gap-4">
+          <DialogHeader>
+            <DialogTitle>{selectedPestPlot?.state === "withered" ? "🥀 Crop withered" : "🐛 Pest infestation"}</DialogTitle>
+            <DialogDescription>
+              {selectedPestPlot?.state === "withered"
+                ? "This crop has expired and cannot be cured. Clear the plot to plant again."
+                : `${selectedPestPlot?.cropName ?? "This crop"} is infested. Spend one medicine to save it, or discard the crop and free the plot without spending medicine.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            {selectedPestPlot?.state === "pest" && (
+              <Button type="button" disabled={farm.medicineCount <= 0}
+                className="min-h-11 bg-emerald-600 text-white hover:bg-emerald-700"
+                onClick={() => {
+                  if (!selectedPestPlot) return;
+                  onSpray(selectedPestPlot.id);
+                  setSelectedPestPlotId(null);
+                }}>
+                💊 Save crop (1 medicine · {farm.medicineCount} available)
+              </Button>
+            )}
+            <Button type="button" variant="outline" className="min-h-11"
+              onClick={() => {
+                if (!selectedPestPlot) return;
+                onClear(selectedPestPlot.id);
+                setSelectedPestPlotId(null);
+              }}>
+              🧹 Clear plot (free · lose crop)
+            </Button>
+          </div>
+          {selectedPestPlot?.state === "pest" && farm.medicineCount <= 0 && (
+            <p className="text-xs text-muted-foreground">
+              {farm.medicineMax === 0
+                ? "Medicine is not unlocked yet. You can always clear this plot for free."
+                : "No medicine available. You can clear the plot now or wait for a refill."}
+            </p>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setSelectedPestPlotId(null)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
